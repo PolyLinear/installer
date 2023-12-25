@@ -81,7 +81,8 @@ echo "${hostname}" > /etc/hostname
 }
 
 function bootloader() { 
-    pacman --noconfirm "intel-ucode grub efibootmgr"
+    boot_packages='intel-ucode grub efibootmgr'
+    pacman --noconfirm -S $boot_packages 
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 }
 
