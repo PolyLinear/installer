@@ -32,6 +32,7 @@ select device in "${devices[@]}"; do
 
 done
 
+#TODO: create trap. the following should not fail for any reason
 parted -f --script "$device_to_install" \
     mklabel gpt \
     mkpart '"EFI Partition"' fat32 1MiB 1GiB \
@@ -39,9 +40,10 @@ parted -f --script "$device_to_install" \
     mkpart '"Swap Partition"' linux-swap 1GiB 5GiB \
     mkpart '"Root Partition"' ext4 5GiB 100%
 
+
 mkfs.fat -F 32 "${device_to_install}1"
 
-mkfs.swap "${device_to_install}2"
+mkswap "${device_to_install}2"
 swapon "${device_to_install}2"
 
 mkfs.ext4 "${device_to_install}3"
