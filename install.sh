@@ -63,7 +63,7 @@ pacstrap -K /mnt base linux linux-firmware neovim
 
 genfstab -U /mnt >> /mnt/etc/fstab
 cp "$0" /mnt/"$0"
-arch-chroot /mnt /mnt/install.sh "setup" 
+arch-chroot /mnt ./install.sh "setup" 
 
 }
 
