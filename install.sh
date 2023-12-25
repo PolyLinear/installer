@@ -63,7 +63,7 @@ pacstrap -K /mnt base linux linux-firmware neovim
 
 genfstab -U /mnt >> /mnt/etc/fstab
 cp "$0" /mnt/"$0"
-arch-chroot /mnt install.sh "setup" 
+arch-chroot /mnt /mnt/install.sh "setup" 
 
 }
 
@@ -78,9 +78,14 @@ echo "${hostname}" > /etc/hostname
 
 }
 
+function cleanup() { 
+    rm /mnt/install.sh
+}
+
 
 if [[ "$1" = "setup" ]]; then
     locale_and_time
+    cleanup
 else
     partition
     installation
