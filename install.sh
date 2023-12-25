@@ -2,7 +2,8 @@
 #Script to create a bare minimum arch linux installation
 
 #assuming internet is connected
-
+language="en_US.UTF-8"
+hostname="archlinux"
 #verify boot mode, assure 64-bit x64 UEFI
 [[ $(cat /sys/firmware/efi/fw_platform_size) -eq 64 ]] || {
 	printf "%s\n" "Please assure that the system is using a 64-bit x64 UEFI" \
@@ -54,5 +55,14 @@ mount --mkdir "${device_to_install}1" /mnt/boot
 pacstrap -K /mnt base linux linux-firmware neovim
 
 genfstab -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt
+
+ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+hwclock --systohc
+
+echo "LANG=${language}" > /etc/locale.gen
+sed -i "/${language}/s/^#//" /etc/locale.gen
+
+echo "${hostname}" > /etc/hostname
 
 
