@@ -84,6 +84,7 @@ function bootloader() {
     boot_packages='intel-ucode grub efibootmgr'
     pacman --noconfirm -S $boot_packages 
     grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+    grub-mkconfig -o /boot/grub/grub.cfg
 }
 
 function cleanup() { 
