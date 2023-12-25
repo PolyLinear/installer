@@ -67,24 +67,34 @@ arch-chroot /mnt ./install.sh "setup"
 
 }
 
-function locale_and_time() {  
+function locale_and_time(){  
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 hwclock --systohc
 
+echo Setting Languages
 echo "LANG=${language}" > /etc/locale.conf
 sed -i "/${language}/s/^#//" /etc/locale.gen
 
+echo setting hostname
 echo "${hostname}" > /etc/hostname
 
 }
 
+function bootloader() { 
+    pacman --no-confirm "intel-ucode grub efibootmgr"
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+}
+
 function cleanup() { 
-    rm /mnt/install.sh
+    rm install.sh
+    exit
+    umount -R /mnt
 }
 
 
 if [[ "$1" = "setup" ]]; then
     locale_and_time
+    bootloader
     cleanup
 else
     partition
