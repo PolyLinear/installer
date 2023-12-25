@@ -139,7 +139,7 @@ function base() {
 		zip \
 		ntp
 
-	useradd -m -G -U wheel,libvirt $username
+	useradd -m -U -G wheel,libvirt $username
 	passwd $username
 }
 
