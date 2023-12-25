@@ -60,7 +60,7 @@ arch-chroot /mnt
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 hwclock --systohc
 
-echo "LANG=${language}" > /etc/locale.gen
+echo "LANG=${language}" > /etc/locale.conf
 sed -i "/${language}/s/^#//" /etc/locale.gen
 
 echo "${hostname}" > /etc/hostname
