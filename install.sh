@@ -5,6 +5,9 @@
 language="en_US.UTF-8"
 hostname="archlinux"
 #verify boot mode, assure 64-bit x64 UEFI
+
+partition() {  
+
 [[ $(cat /sys/firmware/efi/fw_platform_size) -eq 64 ]] || {
 	printf "%s\n" "Please assure that the system is using a 64-bit x64 UEFI" \
 	"Set up will not continue otherwise"
@@ -52,11 +55,19 @@ mkfs.ext4 "${device_to_install}3"
 mount "${device_to_install}3" /mnt
 mount --mkdir "${device_to_install}1" /mnt/boot
 
+}
+
+function installation()  {
+
 pacstrap -K /mnt base linux linux-firmware neovim
 
 genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt
+cp "$0" /mnt/"$0"
+arch-chroot /mnt install.sh "setup" 
 
+}
+
+function locale_and_time() {  
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 hwclock --systohc
 
@@ -65,4 +76,13 @@ sed -i "/${language}/s/^#//" /etc/locale.gen
 
 echo "${hostname}" > /etc/hostname
 
+}
+
+
+if [[ "$1" = "setup" ]]; then
+    locale_and_time
+else
+    partition
+    installation
+fi
 
