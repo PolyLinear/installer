@@ -114,7 +114,7 @@ function encryption() {
 
 #TODO: setup sudoers file, enable wifi and firewall support
 function base() {
-	pacman --noconfirm -S acpi \
+	yes | pacman  -S acpi \
 		bash-completion \
 		dnsmasq \
 		firewalld \
@@ -139,7 +139,7 @@ function base() {
 		zip \
 		ntp
 
-	useradd -m -G wheel,libvirt $username
+	useradd -m -G -U wheel,libvirt $username
 	passwd $username
 }
 
