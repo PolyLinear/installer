@@ -31,7 +31,8 @@ done
 
 parted --script "$device_to_install" \
     mklabel gpt \
-    mkpart "EFI partition" fat32 1MiB 1GiB \
-    mkpart "swap partition" linux-swap 1GiB  5GiB \
-    mkpart "root partition" ext4 5GiB 100%
+    mkpart '"EFI Partition"' fat32 1MiB 1GiB \
+    set 1 esp on \
+    mkpart '"Swap Partition"' linux-swap 1GiB 5GiB \
+    mkpart '"Root Partition"' ext4 5GiB 100%
 
