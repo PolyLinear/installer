@@ -138,19 +138,20 @@ function base() {
 		wpa_supplicant \
 		zip \
 		ntp \
+		git \
 		sudo
 
 	systemctl enable tlp.service
 	systemctl enable NetworkManager.service
 
-	sed -iE '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
+	sed -i -E '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
 	useradd -m -U -G wheel $username
 	passwd $username
 }
 
 #TODO enable virtual-machine functionality
 function libvert-setup {
-	yes | pacman -S qemu-full \
+	 pacman --noconfirm -S qemu-full \
 		dnsmasq \
 		virt-manager \
 		virt-firmware \
