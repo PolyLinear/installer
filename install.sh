@@ -5,7 +5,7 @@
 language="en_US.UTF-8"
 hostname="archlinux"
 username="user"
-
+mount_finished=false
 partition() {
 
 	[[ $(cat /sys/firmware/efi/fw_platform_size) -eq 64 ]] || {
@@ -54,6 +54,7 @@ partition() {
 	mount "${device_to_install}3" /mnt
 	mount --mkdir "${device_to_install}1" /mnt/boot
 
+	mount_finished=true
 }
 
 function installation() {
@@ -139,6 +140,10 @@ function base() {
 		ntp \
 		sudo
 
+	systemctl enable tlp.service
+	systemctl enable NetworkManager.service
+
+	sed -iE '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
 	useradd -m -U -G wheel $username
 	passwd $username
 }
@@ -149,7 +154,7 @@ function libvert-setup {
 		dnsmasq \
 		virt-manager \
 		virt-firmware \
-		spice-spice-vdagent \
+		spice-vdagent \
 		lvm2
 
 	systemctl enable libvirtd.service
@@ -164,9 +169,16 @@ function apply_dot_file() {
 }
 
 function cleanup() {
+	
 	rm install.sh
 	exit
 	umount -R /mnt
+}
+
+function early_partition_exit() { 
+   if [[ "$mount_finished" = true ]]; then
+       echo stuff
+   fi 
 }
 
 if [[ "$1" = "setup" ]]; then
