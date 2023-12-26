@@ -114,9 +114,8 @@ function encryption() {
 
 #TODO: setup sudoers file, enable wifi and firewall support
 function base() {
-	yes | pacman  -S acpi \
+	yes | pacman -S acpi \
 		bash-completion \
-		dnsmasq \
 		firewalld \
 		gnu-netcat \
 		iptables-nft \
@@ -137,15 +136,26 @@ function base() {
 		unzip \
 		wpa_supplicant \
 		zip \
-		ntp
+		ntp \
+		sudo
 
-	useradd -m -U -G wheel,libvirt $username
+	useradd -m -U -G wheel $username
 	passwd $username
 }
 
 #TODO enable virtual-machine functionality
 function libvert-setup {
-	true
+	yes | pacman -S qemu-full \
+		dnsmasq \
+		virt-manager \
+		virt-firmware \
+		spice-spice-vdagent \
+		lvm2
+
+	systemctl enable libvirtd.service
+	systemctl enable libvirtd.socket
+
+	usermod -aG libvirt $username
 }
 
 #TODO fetch dot files from repo and apply
@@ -164,6 +174,7 @@ if [[ "$1" = "setup" ]]; then
 	bootloader
 	base
 	fonts
+	libvert-setup
 	cleanup
 else
 	partition
