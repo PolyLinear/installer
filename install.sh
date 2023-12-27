@@ -4,8 +4,8 @@
 #assuming internet is connected
 language="en_US.UTF-8"
 hostname="archlinux"
-username="user"
-mount_finished=false
+export username="user"
+export dot_files="https://github.com/PolyLinear/dotfiles"
 partition() {
 
 	[[ $(cat /sys/firmware/efi/fw_platform_size) -eq 64 ]] || {
@@ -54,7 +54,6 @@ partition() {
 	mount "${device_to_install}3" /mnt
 	mount --mkdir "${device_to_install}1" /mnt/boot
 
-	mount_finished=true
 }
 
 function installation() {
@@ -74,6 +73,7 @@ function locale_and_time() {
 
 	echo "LANG=${language}" >/etc/locale.conf
 	sed -i "/${language}/s/^#//" /etc/locale.gen
+	locale-gen
 
 	echo "${hostname}" >/etc/hostname
 
@@ -99,14 +99,6 @@ function bootloader() {
 	grub-mkconfig -o /boot/grub/grub.cfg
 }
 
-function fonts() {
-	pacman --noconfirm -S adobe-source-han-sans-jp-fonts \
-		ttf-dejavu \
-		ttf-jetbrains-mono-nerd \
-		ttf-liberation \
-		noto-fonts
-
-}
 
 #TODO: create script to automatically encrypt drive
 function encryption() {
@@ -133,16 +125,18 @@ function base() {
 		strace \
 		tlp \
 		traceroute \
-		neovim \
 		unzip \
 		wpa_supplicant \
 		zip \
 		ntp \
 		git \
+		xdg-utils \
+		xdg-user-dirs \
 		sudo
 
 	systemctl enable tlp.service
 	systemctl enable NetworkManager.service
+	systemctl enable firewalld.service
 
 	sed -i -E '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
 	useradd -m -U -G wheel $username
@@ -151,12 +145,11 @@ function base() {
 
 #TODO enable virtual-machine functionality
 function libvert-setup {
-	 pacman --noconfirm -S qemu-full \
+	pacman --noconfirm -S qemu-full \
 		dnsmasq \
 		virt-manager \
 		virt-firmware \
-		spice-vdagent \
-		lvm2
+		spice-vdagent
 
 	systemctl enable libvirtd.service
 	systemctl enable libvirtd.socket
@@ -165,29 +158,95 @@ function libvert-setup {
 }
 
 #TODO fetch dot files from repo and apply
-function apply_dot_file() {
-	true
+function apply_dot_files() {
+	su - "$username"
+	git clone "$dot_files" .dotfiles
+
+	ln -sf ~/.dotfiles/.bashrc .bashrc
+	ln -sf ~/.dotfiles/.bash_profile .bash_profile && source ~/.bash_profile
+
+	[[ ! -d "$XDG_DATA_HOME" ]] && mkdir -p "$XDG_DATA_HOME"
+	[[ ! -d "$XDG_CONFIG_HOME" ]] && mkdir -p "$XDG_DATA_HOME"
+
+	for file in ~/.dotfiles/config/*; do
+		ln -s "$file" "$XDG_CONFIG_HOME/$(basename file)"
+	done
+
+	ln -s .dotfiles/scripts ~/scripts
+	xdg-user-dirs-update
+}
+
+#includes sway and working programs for user
+function extra_packages() {
+	programs=""
+
+	#editor
+	programs+=" neovim python-pynvim npm nodejs"
+
+	#development
+	programs+=" make clang llvm rust rust-analyzer base-devel bash-language-server gdb shellcheck rsync "
+
+	#pdf viewer
+	programs+=" zathura zathura-pdf-poppler"
+
+	#tex
+	programs+=" texlive"
+
+	#sway
+	programs+=" sway bemenu bemenu-wayland swaybg swayidle swaylock waybar xdg-desktop-portal-gtk xdg-desktop-portal-wlr xorg-xwayland wayland-protocols waylandpp wl-mirror wl-clipboard slurp grim"
+
+	#fonts
+	programs+=" ttf-dejavu ttf-jetbrains-mono-nerd ttf-liberation noto-fonts otf-font-awesome adobe-source-han-sans-jp-fonts"
+
+	#browser
+	programs+=" firefox"
+
+	#audio
+	programs+=" pipewire pipewire-pulse pavucontrol pulsemixer python-pygments"
+
+	#music
+	programs+=" mpd mpc ncmpcpp picard"
+
+	#playback
+	programs+=" mpv"
+
+	#image-viewer
+	programs+=" imv"
+
+	#notes
+	programs+=" obsidian"
+
+	pacman --noconfirm -S $programs
+
+}
+
+
+#TODO set default programs for opening files using XDG
+function set_defaults() {
+    true;
+}
+function configure() {
+	libvert-setup
+	export -f apply_dot_files
+	su - $username -c "apply_dot_files"
+	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
+	extra_packages
+	su - $username -c "systemctl --user enable mpd.service"
 }
 
 function cleanup() {
-	
+
 	rm install.sh
 	exit
 	umount -R /mnt
 }
 
-function early_partition_exit() { 
-   if [[ "$mount_finished" = true ]]; then
-       echo stuff
-   fi 
-}
 
 if [[ "$1" = "setup" ]]; then
 	locale_and_time
 	bootloader
 	base
-	fonts
-	libvert-setup
+	configure
 	cleanup
 else
 	partition
