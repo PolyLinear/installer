@@ -109,7 +109,7 @@ function base() {
 
 	sudo pacman -S reflector
 
-	reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+	reflector --latest 200 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 	yes | pacman -Sy acpi \
 		bash-completion \
 		firewalld \
