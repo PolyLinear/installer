@@ -107,38 +107,12 @@ function encryption() {
 #TODO: setup sudoers file, enable wifi and firewall support
 function base() {
 
-	pacman --noconfirm -S reflector
+	pacman --noconfirm -S reflector pacutils
 
 	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
 
-	#reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-	#pacman -S - <$(awk '/^[^\[]/ {print $1}' install.txt)
-	 pacman -Sy acpi \
-		bash-completion \
-		firewalld \
-		gnu-netcat \
-		iptables-nft \
-		linux-docs \
-		lvm2 \
-		man-db \
-		man-pages \
-		netstat-nat \
-		networkmanager \
-		polkit-gnome \
-		posix-c-development \
-		reflector \
-		rsync \
-		strace \
-		tlp \
-		traceroute \
-		unzip \
-		wpa_supplicant \
-		zip \
-		ntp \
-		git \
-		xdg-utils \
-		xdg-user-dirs \
-		sudo
+	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+	pacinstall --no-confirm --resolve-replacements=all $(awk '/^[^\[]/ {print $1}' packages.txt)
 
 	systemctl enable tlp.service
 	systemctl enable NetworkManager.service
@@ -183,7 +157,6 @@ function user_specific_configurations() {
 	sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 }
-
 
 #TODO set default programs for opening files using XDG
 function set_defaults() {
