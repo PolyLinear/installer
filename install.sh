@@ -62,6 +62,7 @@ function installation() {
 
 	genfstab -U /mnt >>/mnt/etc/fstab
 	cp "$0" /mnt/"$0"
+	cp packages.txt /mnt/tmp/
 	arch-chroot /mnt ./install.sh "setup"
 
 }
@@ -112,7 +113,7 @@ function base() {
 	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
 
 	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-	pacinstall --no-confirm --resolve-replacements=all $(awk '/^[^\[]/ {print $1}' packages.txt)
+	pacinstall --no-confirm --resolve-replacements=all $(awk '/^[^\[]/ {print $1}' /tmp/packages.txt)
 
 	systemctl enable tlp.service
 	systemctl enable NetworkManager.service
