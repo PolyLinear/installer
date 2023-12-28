@@ -107,9 +107,9 @@ function encryption() {
 #TODO: setup sudoers file, enable wifi and firewall support
 function base() {
 
-	pacman -S reflector
+	pacman --noconfirm -S reflector
 
-	reflector --latest 200 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 	yes | pacman -Sy acpi \
 		bash-completion \
 		firewalld \
@@ -181,7 +181,10 @@ function user_specific_configurations() {
 	done
 
 	ln -s ~/.dotfiles/scripts ~/scripts
-	xdg-user-dirs-update
+
+	sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+	xdg-user-dirs-update --force
 }
 
 #includes sway and working programs for user
@@ -239,7 +242,7 @@ function configure() {
 	mkdir /run/user/$(id -u "$username")
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
 	extra_packages
-	su $username -c "systemctl --user enable mpd.service"
+	su $username -c "systemctl --user enable mpd.service; nvim +PlugInstall +qall; xdg-settings set default-web-browser firefox.desktop"
 }
 
 function cleanup() {
