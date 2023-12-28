@@ -166,13 +166,10 @@ function configure() {
 }
 
 function cleanup() {
+	rm /mnt/install.sh /mnt/packages.txt
 
-	rm /install.sh
-	rm /packages.txt
-
-	umount -qR /mnt 2>/dev/null
-	swapoff "${device_to_install}2" 2>/dev/null
-
+	umount -qR /mnt 
+	swapoff "${device_to_install}2" 
 }
 
 if [[ "$1" = "setup" ]]; then
