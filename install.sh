@@ -106,7 +106,11 @@ function encryption() {
 
 #TODO: setup sudoers file, enable wifi and firewall support
 function base() {
-	yes | pacman -S acpi \
+
+	sudo pacman -S reflector
+
+	reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+	yes | pacman -Sy acpi \
 		bash-completion \
 		firewalld \
 		gnu-netcat \
@@ -197,7 +201,7 @@ function extra_packages() {
 	programs+=" texlive"
 
 	#sway
-	programs+=" sway bemenu bemenu-wayland swaybg swayidle swaylock waybar xdg-desktop-portal-gtk xdg-desktop-portal-wlr xorg-xwayland wayland-protocols waylandpp wl-mirror wl-clipboard slurp grim"
+	programs+=" sway bemenu bemenu-wayland swaybg swayidle swaylock waybar xdg-desktop-portal-gtk xdg-desktop-portal-wlr xorg-xwayland wayland-protocols waylandpp wl-mirror wl-clipboard slurp grim brightnessctl"
 
 	#fonts
 	programs+=" ttf-dejavu ttf-jetbrains-mono-nerd ttf-liberation noto-fonts otf-font-awesome adobe-source-han-sans-jp-fonts"
@@ -232,10 +236,10 @@ function configure() {
 	libvert-setup
 	export -f user_specific_configurations
 	su $username -c "user_specific_configurations"
-	mkdir /run/user/`id -u "$username"`
+	mkdir /run/user/$(id -u "$username")
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
 	extra_packages
-	su  $username -c "systemctl --user enable mpd.service"
+	su $username -c "systemctl --user enable mpd.service"
 }
 
 function cleanup() {
