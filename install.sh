@@ -113,25 +113,19 @@ function base() {
 	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
 
 	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-	pacinstall --no-confirm --resolve-replacements=all $(awk '/^[^\[]/ {print $1}' /packages.txt)
+	pacinstall --no-confirm --resolve-replacements=provides --resolve-conflicts=provides $(awk '/^[^\[]/ {print $1}' /packages.txt)
 
 	systemctl enable tlp.service
 	systemctl enable NetworkManager.service
 	systemctl enable firewalld.service
-
-	sed -i -E '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
-	useradd -m -U -G wheel $username
-	passwd $username
-}
-
-#TODO enable virtual-machine functionality
-function libvert-setup {
-
 	systemctl enable libvirtd.service
 	systemctl enable libvirtd.socket
 
-	usermod -aG libvirt $username
+	sed -i -E '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
+	useradd -m -U -G wheel,libvirt $username
+	passwd $username
 }
+
 
 #TODO fetch dot files from repo and apply
 function user_specific_configurations() {
@@ -164,7 +158,6 @@ function set_defaults() {
 	true
 }
 function configure() {
-	libvert-setup
 	export -f user_specific_configurations
 	su $username -c "user_specific_configurations"
 	mkdir /run/user/$(id -u "$username")
@@ -177,7 +170,6 @@ function cleanup() {
 	rm /install.sh
 	rm /packages.txt
 
-	exit
 	umount -qR /mnt 2>/dev/null
 	swapoff "${device_to_install}2" 2>/dev/null
 
@@ -188,8 +180,8 @@ if [[ "$1" = "setup" ]]; then
 	bootloader
 	base
 	configure
-	cleanup
 else
 	partition
 	installation
+	cleanup
 fi
