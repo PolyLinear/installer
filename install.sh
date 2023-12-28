@@ -99,7 +99,6 @@ function bootloader() {
 	grub-mkconfig -o /boot/grub/grub.cfg
 }
 
-
 #TODO: create script to automatically encrypt drive
 function encryption() {
 	true
@@ -158,21 +157,26 @@ function libvert-setup {
 }
 
 #TODO fetch dot files from repo and apply
-function apply_dot_files() {
-	su - "$username"
-	git clone "$dot_files" .dotfiles
+function user_specific_configurations() {
+	git clone "$dot_files" ~/.dotfiles
 
-	ln -sf ~/.dotfiles/.bashrc .bashrc
-	ln -sf ~/.dotfiles/.bash_profile .bash_profile && source ~/.bash_profile
+	ln -sf ~/.dotfiles/.bashrc ~/.bashrc
+	ln -sf ~/.dotfiles/.bash_profile ~/.bash_profile && source ~/.bash_profile
 
-	[[ ! -d "$XDG_DATA_HOME" ]] && mkdir -p "$XDG_DATA_HOME"
-	[[ ! -d "$XDG_CONFIG_HOME" ]] && mkdir -p "$XDG_DATA_HOME"
+	define_XDG() {
+		[[ -d "$1" ]] || mkdir -p "$1"
+	}
+
+	define_XDG "$XDG_DATA_HOME"
+	define_XDG "$XDG_STATE_HOME"
+	define_XDG "$XDG_CACHE_HOME"
+	define_XDG "$XDG_CONFIG_HOME"
 
 	for file in ~/.dotfiles/config/*; do
 		ln -s "$file" "$XDG_CONFIG_HOME/$(basename file)"
 	done
 
-	ln -s .dotfiles/scripts ~/scripts
+	ln -s ~/.dotfiles/scripts ~/scripts
 	xdg-user-dirs-update
 }
 
@@ -205,7 +209,7 @@ function extra_packages() {
 	programs+=" pipewire pipewire-pulse pavucontrol pulsemixer python-pygments"
 
 	#music
-	programs+=" mpd mpc ncmpcpp picard"
+	programs+=" mpd mpc ncmpcpp picard wildmidi"
 
 	#playback
 	programs+=" mpv"
@@ -220,15 +224,14 @@ function extra_packages() {
 
 }
 
-
 #TODO set default programs for opening files using XDG
 function set_defaults() {
-    true;
+	true
 }
 function configure() {
 	libvert-setup
-	export -f apply_dot_files
-	su - $username -c "apply_dot_files"
+	export -f user_specific_configurations
+	su $username -c "user_specific_configurations"
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
 	extra_packages
 	su - $username -c "systemctl --user enable mpd.service"
@@ -240,7 +243,6 @@ function cleanup() {
 	exit
 	umount -R /mnt
 }
-
 
 if [[ "$1" = "setup" ]]; then
 	locale_and_time
