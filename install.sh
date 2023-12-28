@@ -107,7 +107,7 @@ function encryption() {
 #TODO: setup sudoers file, enable wifi and firewall support
 function base() {
 
-	sudo pacman -S reflector
+	pacman -S reflector
 
 	reflector --latest 200 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 	yes | pacman -Sy acpi \
