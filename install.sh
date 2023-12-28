@@ -173,7 +173,7 @@ function user_specific_configurations() {
 	define_XDG "$XDG_CONFIG_HOME"
 
 	for file in ~/.dotfiles/config/*; do
-		ln -s "$file" "$XDG_CONFIG_HOME/$(basename file)"
+		ln -s "$file" "$XDG_CONFIG_HOME/$(basename "$file")"
 	done
 
 	ln -s ~/.dotfiles/scripts ~/scripts
@@ -232,9 +232,10 @@ function configure() {
 	libvert-setup
 	export -f user_specific_configurations
 	su $username -c "user_specific_configurations"
+	mkdir /run/user/`id -u "$username"`
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
 	extra_packages
-	su - $username -c "systemctl --user enable mpd.service"
+	su  $username -c "systemctl --user enable mpd.service"
 }
 
 function cleanup() {
