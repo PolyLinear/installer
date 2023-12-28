@@ -109,6 +109,8 @@ function base() {
 
 	pacman --noconfirm -S reflector
 
+	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
+
 	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 	yes | pacman -Sy acpi \
 		bash-completion \
@@ -184,7 +186,6 @@ function user_specific_configurations() {
 
 	sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-	xdg-user-dirs-update --force
 }
 
 #includes sway and working programs for user
@@ -242,7 +243,7 @@ function configure() {
 	mkdir /run/user/$(id -u "$username")
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
 	extra_packages
-	su $username -c "systemctl --user enable mpd.service; nvim +PlugInstall +qall; xdg-settings set default-web-browser firefox.desktop"
+	su $username -c "systemctl --user enable mpd.service; nvim +PlugInstall +qall; xdg-settings set default-web-browser firefox.desktop; xdg-user-dirs-update --force"
 }
 
 function cleanup() {
