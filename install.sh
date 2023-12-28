@@ -62,7 +62,7 @@ function installation() {
 
 	genfstab -U /mnt >>/mnt/etc/fstab
 	cp "$0" /mnt/"$0"
-	cp packages.txt /mnt/tmp/
+	cp packages.txt /mnt/
 	arch-chroot /mnt ./install.sh "setup"
 
 }
@@ -113,7 +113,7 @@ function base() {
 	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
 
 	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-	pacinstall --no-confirm --resolve-replacements=all $(awk '/^[^\[]/ {print $1}' /tmp/packages.txt)
+	pacinstall --no-confirm --resolve-replacements=all $(awk '/^[^\[]/ {print $1}' /packages.txt)
 
 	systemctl enable tlp.service
 	systemctl enable NetworkManager.service
@@ -169,14 +169,18 @@ function configure() {
 	su $username -c "user_specific_configurations"
 	mkdir /run/user/$(id -u "$username")
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
-	su $username -c "systemctl --user enable mpd.service; nvim +PlugInstall +qall; xdg-settings set default-web-browser firefox.desktop; xdg-user-dirs-update --force"
+	su $username -c "systemctl --user enable mpd.service; nvim +PlugInstall +qall; nvim +CocInstall +qall; xdg-settings set default-web-browser firefox.desktop; xdg-user-dirs-update --force"
 }
 
 function cleanup() {
 
-	rm install.sh
+	rm /install.sh
+	rm /packages.txt
+
 	exit
-	umount -R /mnt
+	umount -qR /mnt 2>/dev/null
+	swapoff "${device_to_install}2" 2>/dev/null
+
 }
 
 if [[ "$1" = "setup" ]]; then
