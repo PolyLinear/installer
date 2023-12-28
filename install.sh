@@ -111,8 +111,9 @@ function base() {
 
 	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
 
-	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-	yes | pacman -Sy acpi \
+	#reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+	#pacman -S - <$(awk '/^[^\[]/ {print $1}' install.txt)
+	 pacman -Sy acpi \
 		bash-completion \
 		firewalld \
 		gnu-netcat \
@@ -150,11 +151,6 @@ function base() {
 
 #TODO enable virtual-machine functionality
 function libvert-setup {
-	pacman --noconfirm -S qemu-full \
-		dnsmasq \
-		virt-manager \
-		virt-firmware \
-		spice-vdagent
 
 	systemctl enable libvirtd.service
 	systemctl enable libvirtd.socket
@@ -188,49 +184,6 @@ function user_specific_configurations() {
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 }
 
-#includes sway and working programs for user
-function extra_packages() {
-	programs=""
-
-	#editor
-	programs+=" neovim python-pynvim npm nodejs"
-
-	#development
-	programs+=" make clang llvm rust rust-analyzer base-devel bash-language-server gdb shellcheck rsync "
-
-	#pdf viewer
-	programs+=" zathura zathura-pdf-poppler"
-
-	#tex
-	programs+=" texlive"
-
-	#sway
-	programs+=" sway bemenu bemenu-wayland swaybg swayidle swaylock waybar xdg-desktop-portal-gtk xdg-desktop-portal-wlr xorg-xwayland wayland-protocols waylandpp wl-mirror wl-clipboard slurp grim brightnessctl"
-
-	#fonts
-	programs+=" ttf-dejavu ttf-jetbrains-mono-nerd ttf-liberation noto-fonts otf-font-awesome adobe-source-han-sans-jp-fonts"
-
-	#browser
-	programs+=" firefox"
-
-	#audio
-	programs+=" pipewire pipewire-pulse pavucontrol pulsemixer python-pygments"
-
-	#music
-	programs+=" mpd mpc ncmpcpp picard wildmidi"
-
-	#playback
-	programs+=" mpv"
-
-	#image-viewer
-	programs+=" imv"
-
-	#notes
-	programs+=" obsidian"
-
-	pacman --noconfirm -S $programs
-
-}
 
 #TODO set default programs for opening files using XDG
 function set_defaults() {
@@ -242,7 +195,6 @@ function configure() {
 	su $username -c "user_specific_configurations"
 	mkdir /run/user/$(id -u "$username")
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
-	extra_packages
 	su $username -c "systemctl --user enable mpd.service; nvim +PlugInstall +qall; xdg-settings set default-web-browser firefox.desktop; xdg-user-dirs-update --force"
 }
 
