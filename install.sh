@@ -36,29 +36,33 @@ partition() {
 
 	done
 
-	#TODO: create trap. the following should not fail for any reason
-	parted -f --script "$device_to_install" \
-		mklabel gpt \
-		mkpart '"EFI Partition"' fat32 1MiB 1GiB \
-		set 1 esp on \
-		mkpart '"Swap Partition"' linux-swap 1GiB 5GiB \
-		mkpart '"Root Partition"' ext4 5GiB 100%
+	sgdisk --zap-all "${device_to_install}"
+	sgdisk --clear \
+		--new=1:0:+1G --typecode=1:ef00 \
+		--new=2:0:0 --typecode=2:8309 "${device_to_install}"
 
 	mkfs.fat -F 32 "${device_to_install}1"
 
-	mkswap "${device_to_install}2"
-	swapon "${device_to_install}2"
+	cryptsetup luksFormat -s 512 "${device_to_install}2"
+	cryptsetup open "${device_to_install}2" cryptlvm
+	pvcreate /dev/mapper/cryptlvm
+	vgcreate vgsystem /dev/mapper/cryptlvm
+	lvcreate -L 4G vgsystem -n swap
+	lvcreate -l 100%FREE vgsystem -n root
 
-	mkfs.ext4 "${device_to_install}3"
+	mkfs.ext4 /dev/vgsystem/root
+	mkswap /dev/vgsystem/swap
+	mkfs.fat -F 32 "${device_to_install}1"
 
-	mount "${device_to_install}3" /mnt
 	mount --mkdir "${device_to_install}1" /mnt/boot
+	mount /dev/vgsystem/root /mnt
+	swapon /dev/vgsystem/swap
 
 }
 
 function installation() {
 
-	pacstrap -K /mnt base linux linux-firmware
+	pacstrap -K /mnt "base linux linux-firmware mkinitcpio lvm2 dhcpcd wpa_supplicant networkmanager dracut efibootmgr git"
 
 	genfstab -U /mnt >>/mnt/etc/fstab
 	cp "$0" /mnt/"$0"
@@ -84,12 +88,11 @@ function locale_and_time() {
 
 function bootloader() {
 
+	ucode=""
 	if grep -m 1 GenuineIntel /proc/cpuinfo >/dev/null; then
 		ucode="intel-ucode"
 	elif grep -m 1 AuthenticAMD /proc/cpuinfo >/dev/null; then
 		ucode="amd-ucode"
-	else
-		ucode=""
 	fi
 
 	pacman --noconfirm -S "$ucode" \
@@ -126,7 +129,6 @@ function base() {
 	passwd $username
 }
 
-
 #TODO fetch dot files from repo and apply
 function user_specific_configurations() {
 	git clone "$dot_files" ~/.dotfiles
@@ -149,27 +151,28 @@ function user_specific_configurations() {
 
 	ln -s ~/.dotfiles/scripts ~/scripts
 
+	#code taken from vim-plug github repo
 	sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+
+	nvim +PlugInstall +qall
+	systemctl --user enable mpd.service
+	xdg-settings set default-web-browser firefox.desktop
+	xdg-user-dirs-update --force
 }
 
-#TODO set default programs for opening files using XDG
-function set_defaults() {
-	true
-}
 function configure() {
+	mkdir /run/user/$(id -u "$username")
 	export -f user_specific_configurations
 	su $username -c "user_specific_configurations"
-	mkdir /run/user/$(id -u "$username")
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
-	su $username -c "systemctl --user enable mpd.service; nvim +PlugInstall +qall; xdg-settings set default-web-browser firefox.desktop; xdg-user-dirs-update --force"
 }
 
 function cleanup() {
 	rm /mnt/install.sh /mnt/packages.txt
 
-	umount -qR /mnt 
-	swapoff "${device_to_install}2" 
+	umount -qR /mnt
+	swapoff "${device_to_install}2"
 }
 
 if [[ "$1" = "setup" ]]; then

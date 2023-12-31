@@ -2,14 +2,13 @@
 acpi 
 bash-completion 
 firewalld 
+dhcpcd
 gnu-netcat 
 iptables-nft 
 linux-docs 
-lvm2 
 man-db 
 man-pages 
 netstat-nat 
-networkmanager 
 polkit-gnome 
 posix-c-development 
 reflector 
@@ -18,13 +17,12 @@ strace
 tlp 
 traceroute 
 unzip 
-wpa_supplicant 
 zip 
 ntp 
-git 
 xdg-utils 
 xdg-user-dirs 
 sudo
+gptfdisk
 
 [editor]
 neovim 
@@ -131,4 +129,3 @@ dnsmasq
 virt-manager 
 virt-firmware 
 spice-vdagent
-
