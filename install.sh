@@ -83,11 +83,13 @@ function locale_and_time() {
 	echo "${hostname}" >/etc/hostname
 
 	systemctl enable systemd-timesyncd.service
+	timedatectl set-ntp true
 
 }
 
 function bootloader() {
 
+	#get ucode for either intel or amd
 	ucode=""
 	if grep -m 1 GenuineIntel /proc/cpuinfo >/dev/null; then
 		ucode="intel-ucode"
@@ -95,12 +97,27 @@ function bootloader() {
 		ucode="amd-ucode"
 	fi
 
-	pacman --noconfirm -S "$ucode" \
-		grub \
-		efibootmgr
+	#install ucode
+	[[ -n $ucode ]] && pacman --noconfirm -S "$ucode"
 
-	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
-	grub-mkconfig -o /boot/grub/grub.cfg
+	#systemd-boot configuration
+	systemd-machine-id-setup
+	bootctl --path=/boot install
+
+    cat <<EOF >/boot/loader/entries/arch.conf
+title  	Arch 
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options cryptdevice=UUID=$(blkid -s UUID -o value "${device_to_install}2"):cryptlvm root=/dev/vgsystem/root
+EOF
+
+cat <<EOF >/boot/loader/loader.conf
+default arch
+timeout 0
+editor  0
+EOF
+
+
 }
 
 #TODO: create script to automatically encrypt drive
