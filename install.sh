@@ -54,8 +54,8 @@ partition() {
 	mkswap /dev/vgsystem/swap
 	mkfs.fat -F 32 "${device_to_install}1"
 
-	mount --mkdir "${device_to_install}1" /mnt/boot
 	mount /dev/vgsystem/root /mnt
+	mount --mkdir "${device_to_install}1" /mnt/boot
 	swapon /dev/vgsystem/swap
 
 }
