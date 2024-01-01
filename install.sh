@@ -84,7 +84,6 @@ function locale_and_time() {
 	echo "${hostname}" >/etc/hostname
 
 	systemctl enable systemd-timesyncd.service
-	timedatectl set-ntp true
 
 }
 
