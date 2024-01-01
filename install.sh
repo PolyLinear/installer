@@ -35,12 +35,10 @@ partition() {
 		fi
 
 	done
-
-	parted --script "$device_to_install" \
-		mklabel gpt \
-		mkpart "EFI partition" fat32 1MiB 1GiB \
-		set 1 esp on \
-		mkpart "cryptlvm" 1GiB '100%'
+	sgdisk --zap-all "${device_to_install}"
+	sgdisk --clear \
+		--new=1:0:+1G --typecode=1:ef00 --change-name=1:"boot" \
+		--new=2:0:0 --typecode=2:8309 --change-name=2:"cryptlvm" "${device_to_install}"
 
 	cryptsetup luksFormat -s 512 "${device_to_install}2"
 	cryptsetup open "${device_to_install}2" cryptlvm
