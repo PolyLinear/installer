@@ -40,8 +40,7 @@ partition() {
 		mklabel gpt \
 		mkpart "EFI partition" fat32 1MiB 1GiB \
 		set 1 esp on \
-		mkpart "swap partition" linux-swap 1GiB 5GiB \
-		mkpart "cryptlvm" 5GiB '100%'
+		mkpart "cryptlvm" 1GiB '100%'
 
 	cryptsetup luksFormat -s 512 "${device_to_install}2"
 	cryptsetup open "${device_to_install}2" cryptlvm
