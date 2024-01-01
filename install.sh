@@ -100,22 +100,34 @@ function bootloader() {
 	#install ucode
 	[[ -n $ucode ]] && pacman --noconfirm -S "$ucode"
 
+	#don't make the random seed file world accessable
+	sed -i '/\/boot.*/s/fmask=[0-9]*,dmask=[0-9]*/fmask=0137,dmask=0027/' /etc/fstab
+
 	#systemd-boot configuration
 	systemd-machine-id-setup
 	bootctl --path=/boot install
 
+	#initrd /intel-ucode.img
+	#create bootloader entry
 	cat <<EOF >/boot/loader/entries/arch.conf
-title  	Arch 
-linux   /vmlinuz-linux
+title   Arch
+linux   /vmlinuz-linux $([[ -n $ucode ]] && printf "\n%s\n" "initrd  /${ucode}.img")
 initrd  /initramfs-linux.img
 options cryptdevice=UUID=$(blkid -s UUID -o value "${device_to_install}2"):cryptlvm root=/dev/vgsystem/root
 EOF
 
+	#configuration information
 	cat <<EOF >/boot/loader/loader.conf
 default arch
 timeout 0
 editor  0
 EOF
+
+	#adding hooks for encryption in /etc/mkinitcpio.conf
+	sed -i '/^\(HOOKS\)=/s/block/block encrypt lvm2/' /etc/mkinitcpio.conf
+
+	#regenerate mkinitcpio
+	mkinitcpio -P
 
 }
 
