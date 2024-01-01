@@ -62,7 +62,8 @@ partition() {
 
 function installation() {
 
-	pacstrap -K /mnt "base linux linux-firmware mkinitcpio lvm2 dhcpcd wpa_supplicant networkmanager dracut efibootmgr git"
+	packages="base linux linux-firmware mkinitcpio lvm2 dhcpcd wpa_supplicant networkmanager dracut efibootmgr git"
+	pacstrap -K /mnt $packages
 
 	genfstab -U /mnt >>/mnt/etc/fstab
 	cp "$0" /mnt/"$0"
@@ -104,19 +105,18 @@ function bootloader() {
 	systemd-machine-id-setup
 	bootctl --path=/boot install
 
-    cat <<EOF >/boot/loader/entries/arch.conf
+	cat <<EOF >/boot/loader/entries/arch.conf
 title  	Arch 
 linux   /vmlinuz-linux
 initrd  /initramfs-linux.img
 options cryptdevice=UUID=$(blkid -s UUID -o value "${device_to_install}2"):cryptlvm root=/dev/vgsystem/root
 EOF
 
-cat <<EOF >/boot/loader/loader.conf
+	cat <<EOF >/boot/loader/loader.conf
 default arch
 timeout 0
 editor  0
 EOF
-
 
 }
 
