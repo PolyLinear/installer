@@ -36,19 +36,19 @@ partition() {
 
 	done
 
-	sgdisk --zap-all "${device_to_install}"
-	sgdisk --clear \
-		--new=1:0:+1G --typecode=1:ef00 \
-		--new=2:0:0 --typecode=2:8309 "${device_to_install}"
-
-	mkfs.fat -F 32 "${device_to_install}1"
+	parted --script "$device_to_install" \
+		mklabel gpt \
+		mkpart "EFI partition" fat32 1MiB 1GiB \
+		set 1 esp on \
+		mkpart "swap partition" linux-swap 1GiB 5GiB \
+		mkpart "cryptlvm" 5GiB '100%'
 
 	cryptsetup luksFormat -s 512 "${device_to_install}2"
 	cryptsetup open "${device_to_install}2" cryptlvm
 	pvcreate /dev/mapper/cryptlvm
 	vgcreate vgsystem /dev/mapper/cryptlvm
 	lvcreate -L 4G vgsystem -n swap
-	lvcreate -l 100%FREE vgsystem -n root
+	lvcreate -l '100%FREE' vgsystem -n root
 
 	mkfs.ext4 /dev/vgsystem/root
 	mkswap /dev/vgsystem/swap
@@ -139,22 +139,29 @@ function encryption() {
 #TODO: setup sudoers file, enable wifi and firewall support
 function base() {
 
-	pacman --noconfirm -S reflector pacutils
+	#create initial user
+	useradd -m -U $username
+	passwd $username
 
+	#setup reflector, install packages specified in packages.txt
+	pacman --noconfirm -S reflector pacutils
 	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
 
 	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 	pacinstall --no-confirm --resolve-replacements=provided --resolve-conflicts=provided $(awk '/^[^\[]/ {print $1}' /packages.txt)
 
+	#enable necessary daemons
 	systemctl enable tlp.service
 	systemctl enable NetworkManager.service
 	systemctl enable firewalld.service
 	systemctl enable libvirtd.service
 	systemctl enable libvirtd.socket
 
+	#allow members of wheel to use sudo
 	sed -i -E '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
-	useradd -m -U -G wheel,libvirt $username
-	passwd $username
+
+	#add secondary groups to user, not that base packages are installed
+	usermod -a -G wheel.libvirt $username
 }
 
 #TODO fetch dot files from repo and apply
@@ -198,9 +205,7 @@ function configure() {
 
 function cleanup() {
 	rm /mnt/install.sh /mnt/packages.txt
-
 	umount -qR /mnt
-	swapoff "${device_to_install}2"
 }
 
 if [[ "$1" = "setup" ]]; then

@@ -9,6 +9,7 @@ linux-docs
 man-db 
 man-pages 
 netstat-nat 
+polkit
 polkit-gnome 
 posix-c-development 
 reflector 
