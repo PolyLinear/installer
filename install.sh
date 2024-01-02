@@ -145,7 +145,7 @@ EOF
 	#configuration information
 	cat <<EOF >/boot/loader/loader.conf
 default arch
-timeout 0
+timeout 3
 editor  0
 EOF
 
