@@ -249,7 +249,7 @@ function cleanup() {
 	rm /mnt/install.sh /mnt/packages.txt
 	umount /mnt/boot
 	umount /mnt
-	swapoff /dev/mapper/swap
+	swapoff /dev/mapper/vgsystem-swap
 }
 
 if [[ "$1" = "setup" ]]; then
