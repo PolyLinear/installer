@@ -4,8 +4,8 @@
 #assuming internet is connected
 language="en_US.UTF-8"
 hostname="archlinux"
-username="user"
-dot_files="https://github.com/PolyLinear/dotfiles"
+export username="user"
+export dot_files="https://github.com/PolyLinear/dotfiles"
 partition() {
 
 	#check if running on 64bit efi. (install won't work otherise)
