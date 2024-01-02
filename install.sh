@@ -6,7 +6,6 @@ language="en_US.UTF-8"
 hostname="archlinux"
 export username="user"
 export dot_files="https://github.com/PolyLinear/dotfiles"
-export device_to_install=""
 partition() {
 
 	[[ $(cat /sys/firmware/efi/fw_platform_size) -eq 64 ]] || {
@@ -29,7 +28,7 @@ partition() {
 			if [[ $decision != "y" ]]; then
 				continue
 			fi
-			device_to_install=$device
+			export device_to_install=$device
 			break
 		fi
 
@@ -127,9 +126,12 @@ EOF
 
 }
 
-#TODO: create script to automatically encrypt drive
-function encryption() {
-	true
+function pacman_setup() {
+	#setup reflector, install packages specified in packages.txt
+	pacman --noconfirm -Sy reflector pacutils archlinux-keyring
+	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
+
+	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 }
 
 #TODO: setup sudoers file, enable wifi and firewall support
@@ -139,11 +141,6 @@ function base() {
 	useradd -m -U $username
 	passwd $username
 
-	#setup reflector, install packages specified in packages.txt
-	pacman --noconfirm -S reflector pacutils
-	sed -i '/ParallelDownloads/s/^#//' /etc/pacman.conf
-
-	reflector --latest 25 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 	pacinstall --no-confirm --resolve-replacements=provided --resolve-conflicts=provided $(awk '/^[^\[]/ {print $1}' /packages.txt)
 
 	#enable necessary daemons
@@ -205,6 +202,7 @@ function cleanup() {
 }
 
 if [[ "$1" = "setup" ]]; then
+	pacman_setup
 	locale_and_time
 	bootloader
 	base
