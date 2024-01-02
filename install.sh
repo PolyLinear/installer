@@ -154,7 +154,7 @@ function base() {
 	sed -i -E '/%wheel\s+ALL=\(ALL:ALL\)\s+ALL/s/^#\s*//' /etc/sudoers
 
 	#add secondary groups to user, not that base packages are installed
-	usermod -a -G wheel.libvirt $username
+	usermod -a -G wheel,libvirt $username
 }
 
 #TODO fetch dot files from repo and apply
