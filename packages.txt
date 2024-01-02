@@ -11,6 +11,7 @@ man-pages
 netstat-nat 
 polkit
 polkit-gnome 
+gnome-themes-extra
 posix-c-development 
 reflector 
 rsync 
