@@ -108,7 +108,7 @@ function bootloader() {
 title   Arch
 linux   /vmlinuz-linux $([[ -n $ucode ]] && printf "\n%s\n" "initrd  /${ucode}.img")
 initrd  /initramfs-linux.img
-options cryptdevice=UUID=$(blkid -s UUID -o value "${device_to_install}2"):cryptlvm root=/dev/vgsystem/root
+options cryptdevice=UUID=$(blkid -s UUID -o value "${device_to_install}2"):cryptlvm root=/dev/vgsystem/root rw
 EOF
 
 	#configuration information
