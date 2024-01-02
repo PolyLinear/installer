@@ -6,6 +6,7 @@ language="en_US.UTF-8"
 hostname="archlinux"
 export username="user"
 export dot_files="https://github.com/PolyLinear/dotfiles"
+export device_to_install=""
 partition() {
 
 	[[ $(cat /sys/firmware/efi/fw_platform_size) -eq 64 ]] || {
@@ -17,8 +18,6 @@ partition() {
 	printf "%s\n\n" "Passed 64-bit x64 UEFI check"
 
 	mapfile -t devices < <(lsblk -dpno name)
-
-	declare device_to_install
 
 	PS3="Select device to partition: "
 	echo "Devices:"
@@ -59,7 +58,7 @@ partition() {
 
 function installation() {
 
-	packages="base linux linux-firmware mkinitcpio lvm2 dhcpcd wpa_supplicant networkmanager dracut efibootmgr git"
+	packages="base linux linux-firmware util-linux mkinitcpio lvm2 dhcpcd wpa_supplicant networkmanager dracut efibootmgr git"
 	pacstrap -K /mnt $packages
 
 	genfstab -U /mnt >>/mnt/etc/fstab
