@@ -92,6 +92,7 @@ wl-clipboard
 slurp
 grim
 brightnessctl
+alacritty
 
 [fonts]
 ttf-dejavu
