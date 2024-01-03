@@ -26,6 +26,7 @@ xdg-utils
 xdg-user-dirs 
 sudo
 gptfdisk
+libnotify
 
 [editor]
 neovim 
