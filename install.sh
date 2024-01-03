@@ -85,8 +85,10 @@ partition() {
 
 function installation() {
 
-	packages="base linux linux-firmware util-linux mkinitcpio lvm2 dhcpcd wpa_supplicant networkmanager dracut efibootmgr git"
-	pacstrap -K /mnt $packages
+	pacstrap -K /mnt base linux linux-firmware \
+		util-linux mkinitcpio lvm2 dhcpcd \
+		wpa_supplicant networkmanager dracut \
+		efibootmgr git
 
 	genfstab -U /mnt >>/mnt/etc/fstab
 	cp "$0" /mnt/"$0"
@@ -197,23 +199,19 @@ function user_specific_configurations() {
 	ln -sf ~/.dotfiles/.bashrc ~/.bashrc
 	ln -sf ~/.dotfiles/.bash_profile ~/.bash_profile && source ~/.bash_profile
 
-	define_XDG() {
-		[[ -d "$1" ]] || mkdir -p "$1"
-	}
-
 	#basic XDG defined in .bash_profile. create directories if needed
-	define_XDG "$XDG_DATA_HOME"
-	define_XDG "$XDG_STATE_HOME"
-	define_XDG "$XDG_CACHE_HOME"
-	define_XDG "$XDG_CONFIG_HOME"
+	mkdir -p "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME"
 
 	#link config files dotfiles
 	for file in ~/.dotfiles/config/*; do
 		ln -s "$file" "$XDG_CONFIG_HOME/$(basename "$file")"
 	done
 
-	#directory for user defined scripts
+	#shoft link user defined scripts
 	ln -s ~/.dotfiles/scripts ~/scripts
+
+	#create preview directory for ncmpcpp
+	mkdir ~/.dotfiles/config/ncmpcpp/previews
 
 	#code taken from vim-plug github repo, install vim-plug
 	sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
@@ -235,7 +233,7 @@ function user_specific_configurations() {
 function configure() {
 
 	#need to directory to enable systemctl functionaity for user
-	mkdir /run/user/$(id -u "$username")
+	mkdir /run/user/"$(id -u "$username")"
 
 	#set defaults for user
 	export -f user_specific_configurations
