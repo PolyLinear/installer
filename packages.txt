@@ -45,6 +45,8 @@ bash-language-server
 gdb
 shellcheck
 rsync
+go
+gopls
 
 [pdf viewer]
 zathura
