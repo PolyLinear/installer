@@ -88,7 +88,7 @@ function installation() {
 	pacstrap -K /mnt base linux linux-firmware \
 		util-linux mkinitcpio lvm2 dhcpcd \
 		wpa_supplicant networkmanager dracut \
-		efibootmgr git
+		efibootmgr git dbus-broker-units
 
 	genfstab -U /mnt >>/mnt/etc/fstab
 	cp "$0" /mnt/"$0"
