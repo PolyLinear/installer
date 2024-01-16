@@ -47,6 +47,7 @@ shellcheck
 rsync
 go
 gopls
+tmux
 
 [pdf viewer]
 zathura
