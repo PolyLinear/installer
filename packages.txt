@@ -33,6 +33,8 @@ neovim
 python-pynvim
 npm
 nodejs
+lua
+luarocks
 
 [development]
 make
@@ -48,12 +50,14 @@ rsync
 go
 gopls
 tmux
+ripgrep
 
 [pdf viewer]
 zathura
 zathura-pdf-poppler
 
 [tex]
+texlab
 texlive-basic
 texlive-bibtexextra
 texlive-binextra
@@ -136,4 +140,5 @@ qemu-full
 dnsmasq 
 virt-manager 
 virt-firmware 
+libvirt
 spice-vdagent

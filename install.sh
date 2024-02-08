@@ -125,7 +125,6 @@ function bootloader() {
 	elif grep -m 1 AuthenticAMD /proc/cpuinfo >/dev/null; then
 		ucode="amd-ucode"
 	fi
-
 	#install ucode
 	[[ -n $ucode ]] && pacman --noconfirm -S "$ucode"
 
@@ -213,13 +212,6 @@ function user_specific_configurations() {
 	#create preview directory for ncmpcpp
 	mkdir ~/.dotfiles/config/ncmpcpp/previews
 
-	#code taken from vim-plug github repo, install vim-plug
-	sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
-       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-
-	#install plugins
-	nvim +PlugInstall +qall
-
 	#enable mpd for music
 	systemctl --user enable mpd.service
 
@@ -238,6 +230,9 @@ function configure() {
 	#set defaults for user
 	export -f user_specific_configurations
 	su $username -c "user_specific_configurations"
+
+	#nodejs provider for neovim
+	npm install -g neovim
 
 	#disable trackpad from custom udev rule
 	cp /home/$username/.dotfiles/99-myfavoritetrackpoint.rules /etc/udev/rules.d/
