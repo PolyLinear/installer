@@ -51,6 +51,7 @@ go
 gopls
 tmux
 ripgrep
+ghidra
 
 [pdf viewer]
 zathura
