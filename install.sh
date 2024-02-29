@@ -201,7 +201,6 @@ function user_specific_configurations() {
 	#basic XDG defined in .bash_profile. create directories if needed
 	mkdir -p "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME"
 
-	#link config files dotfiles
 	for file in ~/.dotfiles/config/*; do
 		ln -s "$file" "$XDG_CONFIG_HOME/$(basename "$file")"
 	done
