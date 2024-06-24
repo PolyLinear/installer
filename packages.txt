@@ -101,6 +101,7 @@ slurp
 grim
 brightnessctl
 alacritty
+dunst
 
 [fonts]
 ttf-dejavu
